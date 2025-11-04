@@ -1,0 +1,122 @@
+version: 2
+
+validation:
+  scope:
+    allow_paths:
+      - "**/*.go"
+      - "go.mod"
+      - "go.sum"
+      - "testdata/**/*.json"
+      - "testdata/**/*.txt"
+      - "testdata/**/*.yml"
+      - "Makefile"
+      - ".gitignore"
+      - "README.md"
+      - "config/**/*.yml"
+      - "config/**/*.yaml"
+    deny_paths:
+      - ".claude/**"
+      - "claudedocs/**"
+      - "**/*.swp"
+      - "**/*.tmp"
+      - "**/.DS_Store"
+      - "data/**"
+      - "*.db"
+
+  limits:
+    max_total_changed_lines: 500
+    max_delete_ratio: 1
+    max_files_changed: 15
+    severity: warning
+
+  ai:
+    system_prompt: |
+      You are a senior Go engineer working on a CLI-based Todo application.
+      This project helps users manage their tasks from the command line.
+      Follow Go best practices, idiomatic patterns, and focus on clean CLI design.
+    rules:
+      - name: package_structure
+        prompt: |
+          Package structure rules:
+          - Does each package have a clear, single responsibility?
+          - Are internal packages placed in `internal/` with correct import paths?
+          - Is CLI command code in `cmd/` with proper separation of concerns?
+          - Is business logic separated from CLI presentation logic?
+          - Are test files named `*_test.go` and placed alongside their source files?
+          - Is there a clear separation between storage, domain logic, and CLI layers?
+
+      - name: error_handling
+        prompt: |
+          Error handling rules:
+          - Are all errors properly handled and never ignored?
+          - Do error messages provide helpful information to CLI users?
+          - Are errors wrapped with additional context using fmt.Errorf with %w?
+          - Does library code return errors instead of panicking?
+          - Is panic only used for truly unrecoverable situations?
+          - Do CLI commands exit with appropriate status codes on errors?
+
+      - name: testing
+        prompt: |
+          Testing rules:
+          - Does every new exported function have a corresponding unit test?
+          - Are table-driven tests used when there are multiple test cases?
+          - Do test files use fixtures from the `testdata/` directory when test data is needed?
+          - Do tests cover both success and failure cases?
+          - Are edge cases tested (empty input, invalid dates, missing todos, etc.)?
+          - Is data persistence properly tested with mock or test implementations?
+
+      - name: documentation
+        severity: warning
+        prompt: |
+          Documentation rules:
+          - Do all exported functions, types, and constants have doc comments?
+          - Do doc comments start with the name of the thing being documented?
+          - Does complex logic have inline comments explaining the "why", not just the "what"?
+          - Are CLI command descriptions clear and helpful for end users?
+          - Is there usage documentation for new commands or flags?
+
+      - name: go_idioms
+        prompt: |
+          Go idioms and best practices:
+          - Are variable names short and meaningful (i, j for indices; err for errors)?
+          - Does the code follow effective Go guidelines?
+          - Does the code conform to gofmt and go vet standards?
+          - Is composition preferred over inheritance?
+          - Are interfaces used appropriately for abstraction?
+          - Are functions kept small and focused?
+
+      - name: prefer_any_over_interface
+        prompt: |
+          Modern Go type usage:
+          - Is `any` used instead of `interface{}` for empty interface types (Go 1.18+)?
+
+      - name: cli_design
+        prompt: |
+          CLI design best practices:
+          - Are command names intuitive and follow common CLI conventions?
+          - Do flags have both short (-f) and long (--flag) forms where appropriate?
+          - Is help text clear and includes examples where helpful?
+          - Are commands composable and follow the Unix philosophy?
+          - Does the CLI provide appropriate feedback for user actions?
+          - Are destructive operations (delete, clear) confirmed or have --force flags?
+
+      - name: data_handling
+        prompt: |
+          Todo data handling rules:
+          - Is user data validated before processing (dates, priorities, descriptions)?
+          - Are todos properly serialized/deserialized?
+          - Is data persistence abstracted through interfaces for testability?
+          - Are concurrent access patterns properly handled if applicable?
+          - Is data corruption prevented through atomic operations or transactions?
+          - Are file operations properly error-checked (read/write permissions, disk space)?
+
+      - name: user_experience
+        severity: warning
+        prompt: |
+          User experience considerations:
+          - Are error messages helpful and actionable for end users?
+          - Is output formatted clearly and consistently?
+          - Are timestamps/dates displayed in a user-friendly format?
+          - Does the CLI support common output formats (plain text, JSON, table)?
+          - Are interactive prompts user-friendly with clear instructions?
+          - Does the application handle edge cases gracefully (no todos, invalid input)?
